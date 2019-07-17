@@ -8,10 +8,11 @@ This readme describes every step required to train your own custom classifying t
 1. Data Preprocessing
 2. Setting up the Object Detection directory structure
 3. Setting Python Paths
-4. Creating a label map and configuring training
+4. Creating tf records and configuring training
 6. Training
 7. Exporting the inference graph
-8. Testing and using your newly trained object detection classifier
+8. Evaluating the model
+9. Deploying it on Raspberry Pi
 
 The repository is inspired by the [How To Train an Object Detection Classifier for Multiple Objects Using TensorFlow (GPU) on Windows 10](https://github.com/EdjeElectronics/TensorFlow-Object-Detection-API-Tutorial-Train-Multiple-Objects-Windows-10) repository.
 
