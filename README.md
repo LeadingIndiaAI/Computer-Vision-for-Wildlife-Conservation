@@ -5,20 +5,20 @@
 This repository is a tutorial for how to use TensorFlow's Object Detection API to train an object detection classifier for tigers on Linux. It was originally done to use on NVIDIA DGX remote server having 8 NVIDIA TESLA 16 GB GPUs, available for processing.
 
 This readme describes every step required to train your own custom classifying tiger detectors: 
-1. [Data Preprocessing]
-2. [Setting up the Object Detection directory structure]
-3. [Setting Python Paths]
-4. [Creating a label map and configuring training]
-6. [Training]
-7. [Exporting the inference graph]
-8. [Testing and using your newly trained object detection classifier]
+1. Data Preprocessing
+2. Setting up the Object Detection directory structure
+3. Setting Python Paths
+4. Creating a label map and configuring training
+6. Training
+7. Exporting the inference graph
+8. Testing and using your newly trained object detection classifier
+
+The repository is inspired by the [How To Train an Object Detection Classifier for Multiple Objects Using TensorFlow (GPU) on Windows 10](https://github.com/EdjeElectronics/TensorFlow-Object-Detection-API-Tutorial-Train-Multiple-Objects-Windows-10) repository.
 
 [Appendix: Common Errors](https://github.com/EdjeElectronics/TensorFlow-Object-Detection-API-Tutorial-Train-Multiple-Objects-Windows-10#appendix-common-errors)
 
-The repository is inspired by the [How To Train an Object Detection Classifier for Multiple Objects Using TensorFlow (GPU) on Windows 10](https://github.com/EdjeElectronics/TensorFlow-Object-Detection-API-Tutorial-Train-Multiple-Objects-Windows-10)
-
 <p align="center">
-  <img src="doc/detector1.jpg">
+  <img src="doc/results.png">
 </p>
 
 ## Introduction
