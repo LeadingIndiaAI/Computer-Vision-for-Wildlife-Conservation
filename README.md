@@ -6,9 +6,8 @@ This repository is a tutorial for how to use TensorFlow's Object Detection API t
 
 This readme describes every step required to train your own custom classifying tiger detectors: 
 1. Data Preprocessing
-2. Setting up the Object Detection directory structure
-3. Setting Python Paths
-4. Creating tf records and configuring training
+2. Setting up the working environment (Object Detection directory structure (Setting Python Pathsion Creating tf records))
+3. Configuring training
 6. Training
 7. Exporting the inference graph
 8. Evaluating the model
@@ -37,7 +36,7 @@ TensorFlow-GPU allows your PC to use the video card to provide extra processing 
 Download the [tiger detection dataset](https://cvwc2019.github.io/challenge.html), both the image dataset and the annotation files.
 
 #### 1b. Edit the discrepancy of filename tags in xml files.
-If you open any xml file, you would notice a discrepancy in the name of xml file and in the tag of filename in the xml file, this generates a bug that won't let us generate tfrecords afterwards. We correct this by creating a new tag named Order and re-generating xml files using windows power shell with the correct name with new tag 'Order'. [This custom script was made for this.](https://github.com/growupboron/Tiger-Detection-Using-ATRW-Dataset/blob/master/atrw_xml_correction.ps1) Issue the script in your local Windows OS's powershell.
+If you open any xml file, you would notice a discrepancy in the name of xml file and in the tag of filename in the xml file, this generates a bug that won't let us generate tfrecords afterwards. We correct this by creating a new tag named Order and re-generating xml files using windows power shell with the correct name with new tag 'Order'. [This powershell custom script was made for this.](https://github.com/growupboron/Tiger-Detection-Using-ATRW-Dataset/blob/master/atrw_xml_correction.ps1) Run the script in your local Windows OS's powershell on the xml files.
 
 #### 1c. Split the dataset into train and test
 Copy the train.txt and val.txt files from atrw_anno_detection_train/ImageSets/Main/ directory into the atrw_anno_detection_train/Annotations/ directory
@@ -48,19 +47,44 @@ $ mkdir val
 $ while IFS= read -r filename; do mv "$filename".xml train/; done < train.txt
 $ while IFS= read -r filename; do mv "$filename".xml val/; done < val.txt
 ```
-
-
-
-
-
-
-### 2. Set up TensorFlow Directory and Anaconda Virtual Environment
+### 2. Setting up the working environment
 The TensorFlow Object Detection API requires using the specific directory structure provided in its GitHub repository. It also requires several additional Python packages, specific additions to the PATH and PYTHONPATH variables, and a few extra setup commands to get everything set up to run or train an object detection model. 
 
 This portion of the tutorial goes over the full set up required. It is fairly meticulous, but follow the instructions closely, because improper setup can cause unwieldy errors down the road.
 
-#### 2a. Download TensorFlow Object Detection API repository from GitHub
-Create a folder directly in C: and name it “tensorflow1”. This working directory will contain the full TensorFlow object detection framework, as well as your training images, training data, trained classifier, configuration files, and everything else needed for the object detection classifier.
+#### 2a. Create tmux session and link it via tensorflow docker image.
+As we did it on remote server via SSH, this becomes necessary, alternately you can make virtual environment on your local system.
+For creation of new session use the following command.
+```
+$ tmux new -s session_name
+```
+Replace the session_name with the name you want to give. When you type this, it will automatically take you to newly created session.
+To exit the session just type exit while you are in session. And if you want to just come out of session without exiting the session you can press ctrl+b and then press d.
+To re-enter your session, you can type the following command
+```
+$ tmux a -t session_name
+```
+To list all the available sessions, you can use ```$tmux ls``` command.
+
+Now once you are in tmux session, you can start a docker which can
+be used for training deep learning model. I generally prefer using
+NVIDIA-Docker for Deep Learning Models. As we already know that
+Docker commands are used to pull already created containers. There
+are few containers which contain TensorFlow, Caffe, PyTorch and
+whichever deep learning libraries are available. For this tutorial I will
+be using TensorFlow Container.
+
+First step is to pull the container from the source. To pull a container
+you can use the following command. The command is also used for
+accessing the docker container for later usages.
+
+```
+$NV_GPU='0,1,2,3,4,5,6,7' nvidia-docker run --name name_of_container --rm -it -v /home/dgxuser104/:/home/dgxuser104/ tensorflow/tensorflow:latest-gpu-py3
+```
+I generally find it better to link every GPU to the docker and check the current status of the GPUs in separate SSH terminal displaying the nvidia-smi output and update it every 1 second ```$ watch -n 1 nvidia-smi ``` and then use specific free GPUs to conduct my training. 
+
+
+Create a folder directly and name it “tensorflow1”. This working directory will contain the full TensorFlow object detection framework, as well as your training images, training data, trained classifier, configuration files, and everything else needed for the object detection classifier.
 
 Download the full TensorFlow object detection repository located at https://github.com/tensorflow/models by clicking the “Clone or Download” button and downloading the zip file. Open the downloaded zip file and extract the “models-master” folder directly into the C:\tensorflow1 directory you just created. Rename “models-master” to just “models”.
 (Note, this tutorial was done using this [GitHub commit](https://github.com/tensorflow/models/tree/079d67d9a0b3407e8d074a200780f3835413ef99) of the TensorFlow Object Detection API. If portions of this tutorial do not work, it may be necessary to download and use this exact commit rather than the most up-to-date version.)
