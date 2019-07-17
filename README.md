@@ -14,7 +14,7 @@ This readme describes every step required to train your own custom classifying t
 8. Evaluating the model
 9. Deploying it on Raspberry Pi
 
-[Link to our project wrap up video](https://www.youtube.com/watch?v=6YP9lnc_HiA&feature=youtu.be)
+[Link to our project wrap up video.](https://www.youtube.com/watch?v=6YP9lnc_HiA&feature=youtu.be)
 
 The repository is inspired by the [How To Train an Object Detection Classifier for Multiple Objects Using TensorFlow (GPU) on Windows 10](https://github.com/EdjeElectronics/TensorFlow-Object-Detection-API-Tutorial-Train-Multiple-Objects-Windows-10) repository.
 
@@ -27,18 +27,29 @@ The repository is inspired by the [How To Train an Object Detection Classifier f
 ## Introduction
 The purpose of this tutorial is to explain how to train your own convolutional neural network object detection classifier for multiple objects, starting from scratch.
 
-TensorFlow-GPU allows your PC to use the video card to provide extra processing power while training, so it will be used for this tutorial. In my experience, using TensorFlow-GPU instead of regular TensorFlow reduces training time by a factor of about 8 (3 hours to train instead of 24 hours). Regular TensorFlow can also be used for this tutorial, but it will take longer. If you use regular TensorFlow, you do not need to install CUDA and cuDNN in Step 1. I used TensorFlow-GPU v1.5 while writing this tutorial, but it will likely work for future versions of TensorFlow.
+TensorFlow-GPU allows your PC to use the video card to provide extra processing power while training, so it will be used for this tutorial. In my experience, using TensorFlow-GPU instead of regular TensorFlow reduces training time by a factor of about 8 (3 hours to train instead of 24 hours). Regular TensorFlow can also be used for this tutorial, but it will take longer.
 
 
 ## Steps
-### 1. Install TensorFlow-GPU 1.5 (skip this step if TensorFlow-GPU 1.5 is already installed)
-Install TensorFlow-GPU by following the instructions in [this YouTube Video by Mark Jay](https://www.youtube.com/watch?v=RplXYjxgZbw).
+### 1. Data Preprocessing
 
-The video is made for TensorFlow-GPU v1.4, but the “pip install --upgrade tensorflow-gpu” command will automatically download version 1.5. Download and install CUDA v9.0 and cuDNN v7.0 (rather than CUDA v8.0 and cuDNN v6.0 as instructed in the video), because they are supported by TensorFlow-GPU v1.5. As future versions of TensorFlow are released, you will likely need to continue updating the CUDA and cuDNN versions to the latest supported version.
+#### 1a. Download the ATRW dataset by CVWC
+Download the [tiger detection dataset](https://cvwc2019.github.io/challenge.html).
 
-Be sure to install Anaconda with Python 3.6 as instructed in the video, as the Anaconda virtual environment will be used for the rest of this tutorial.
+#### 1b. Split the dataset into train and test
+Copy the train.txt and val.txt files from atrw_anno_detection_train/ImageSets/Main/ directory into the atrw_anno_detection_train/Annotations/ directory
+In the terminal, issue the following commands to split the dataset into train and validation sets, you should be in the atrw_anno_detection_train/Annotations directory, while issuing these commands.
+```
+$ mkdir train
+$ mkdir val
+$ while IFS= read -r filename; do mv "$filename".xml train/; done < train.txt
+$ while IFS= read -r filename; do mv "$filename".xml val/; done < val.txt
+```
 
-Visit [TensorFlow's website](https://www.tensorflow.org/install/install_windows) for further installation details, including how to install it on other operating systems (like Linux). The [object detection repository](https://github.com/tensorflow/models/tree/master/research/object_detection) itself also has [installation instructions](https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/installation.md).
+
+
+
+
 
 ### 2. Set up TensorFlow Directory and Anaconda Virtual Environment
 The TensorFlow Object Detection API requires using the specific directory structure provided in its GitHub repository. It also requires several additional Python packages, specific additions to the PATH and PYTHONPATH variables, and a few extra setup commands to get everything set up to run or train an object detection model. 
