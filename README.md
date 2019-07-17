@@ -1,4 +1,4 @@
-# Using ATRW dataset by CVWC with tensorflow-gpu backed on linux based setup for Tiger Detection
+# Using ATRW dataset by CVWC with tensorflow-gpu backend on linux based setup for Tiger Detection
 
 ## Brief Summary
 
