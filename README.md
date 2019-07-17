@@ -34,7 +34,7 @@ TensorFlow-GPU allows your PC to use the video card to provide extra processing 
 ### 1. Data Preprocessing
 
 #### 1a. Download the ATRW dataset by CVWC
-Download the [tiger detection dataset](https://cvwc2019.github.io/challenge.html).
+Download the [tiger detection dataset](https://cvwc2019.github.io/challenge.html), both the image dataset and the annotation files.
 
 #### 1b. Edit the discrepancy of filename tags in xml files.
 If you open any xml file, you would notice a discrepancy in the name of xml file and in the tag of filename in the xml file, this generates a bug that won't let us generate tfrecords afterwards. We correct this by creating a new tag named Order and re-generating xml files using windows power shell with the correct name with new tag 'Order'. [This custom script was made for this.](https://github.com/growupboron/Tiger-Detection-Using-ATRW-Dataset/blob/master/atrw_xml_correction.ps1) Issue the script in your local Windows OS's powershell.
