@@ -1,8 +1,8 @@
-# Using ATRW dataset by CVWC Using TensorFlow (GPU) on Unix Based System for Tiger Detection
+# Using ATRW dataset by CVWC with tensorflow-gpu backed on linux based setup for Tiger Detection
 
 ## Brief Summary
 
-This repository is a tutorial for how to use TensorFlow's Object Detection API to train an object detection classifier for tigers on Linux. It was originally done to use on NVIDIA DGX remote server having 8 NVIDIA TESLA 16 GB GPUs, available for processing.
+This repository is a tutorial for how to use TensorFlow's Object Detection API to train an object detection classifier for tigers on Linux. It was originally done to use on NVIDIA DGX remote server having 8 NVIDIA tesla 16 GB GPUs, available for processing.
 
 This readme describes every step required to train your own custom classifying tiger detectors: 
 1. Data Preprocessing
@@ -126,9 +126,9 @@ $ pip install pillow lxml Cython matplotlib pandas opencv-python
 #### 2e. Compile Protobufs and run setup.py
 Next, compile the Protobuf files, which are used by TensorFlow to configure model and training parameters. Unfortunately, the short protoc compilation command posted on TensorFlow’s Object Detection API [installation page](https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/installation.md) does not work everytime. Every  .proto file in the /object_detection/protos directory must be called out individually by the command.
 
-In the tmux session terminal, change directories to the tensorflow1//models/research directory and copy and paste the following command into the command line and press Enter:
+In the tmux session terminal, change directories to the tensorflow1/models/research directory and copy and paste the following command into the command line and press Enter:
 ```
-protoc --python_out=object_detection object_detection/protos/anchor_generator.proto object_detection/protos/argmax_matcher.proto object_detection/protos object_detection/protos/anchor_generator.proto object_detection/protos/input_reader.proto object_detection/protos/losses.proto object_detection/protos/matcher.proto object_detection/protos/argmax_matcher.proto object_detection/protos/bipartite_matcher.proto object_detection/protos/box_coder.proto object_detection/protos/box_predictor.proto object_detection/protos/eval.proto object_detection/protos/faster_rcnn.proto object_detection/protos/faster_rcnn_box_coder.proto object_detection/protos/grid_anchor_generator.proto object_detection/protos/hyperparams.proto object_detection/protos/image_resizer.proto object_detection/protos/input_reader.proto object_detection/protos/losses.proto object_detection/protos/matcher.proto object_detection/protos/mean_stddev_box_coder.proto object_detection/protos/model.proto object_detection/protos/optimizer.proto object_detection/protos/pipeline.proto object_detection/protos/post_processing.proto object_detection/protos/preprocessor.proto object_detection/protos/region_similarity_calculator.proto object_detection/protos/square_box_coder.proto object_detection/protos/ssd.proto object_detection/protos/ssd_anchor_generator.proto object_detection/protos/string_int_label_map.proto object_detection/protos/train.proto object_detection/protos/keypoint_box_coder.proto object_detection/protos/multiscale_anchor_generator.proto object_detection/protos/graph_rewriter.proto object_detection/protos/calibration.proto object_detection/protos/flexible_grid_anchor_generator.proto
+$ protoc --python_out=object_detection object_detection/protos/anchor_generator.proto object_detection/protos/argmax_matcher.proto object_detection/protos object_detection/protos/anchor_generator.proto object_detection/protos/input_reader.proto object_detection/protos/losses.proto object_detection/protos/matcher.proto object_detection/protos/argmax_matcher.proto object_detection/protos/bipartite_matcher.proto object_detection/protos/box_coder.proto object_detection/protos/box_predictor.proto object_detection/protos/eval.proto object_detection/protos/faster_rcnn.proto object_detection/protos/faster_rcnn_box_coder.proto object_detection/protos/grid_anchor_generator.proto object_detection/protos/hyperparams.proto object_detection/protos/image_resizer.proto object_detection/protos/input_reader.proto object_detection/protos/losses.proto object_detection/protos/matcher.proto object_detection/protos/mean_stddev_box_coder.proto object_detection/protos/model.proto object_detection/protos/optimizer.proto object_detection/protos/pipeline.proto object_detection/protos/post_processing.proto object_detection/protos/preprocessor.proto object_detection/protos/region_similarity_calculator.proto object_detection/protos/square_box_coder.proto object_detection/protos/ssd.proto object_detection/protos/ssd_anchor_generator.proto object_detection/protos/string_int_label_map.proto object_detection/protos/train.proto object_detection/protos/keypoint_box_coder.proto object_detection/protos/multiscale_anchor_generator.proto object_detection/protos/graph_rewriter.proto object_detection/protos/calibration.proto object_detection/protos/flexible_grid_anchor_generator.proto
 ```
 This creates a name_pb2.py file from every name.proto file in the /object_detection/protos folder.
 
@@ -211,7 +211,7 @@ Save the file after the changes have been made. That’s it! The training job is
 
 Here we go! From the /object_detection directory, issue the following command to begin training, assuming that after running the nvidia-smi command, GPU '7' is free:
 ```
-$CUDA_VISIBLE_DEVICES=7 python train.py --logtostderr --train_dir=training_faster_rcnn/ --pipeline_config_path=training_faster_rcnn/faster_rcnn_inception_v2_pets.config
+$ CUDA_VISIBLE_DEVICES=7 python train.py --logtostderr --train_dir=training_faster_rcnn/ --pipeline_config_path=training_faster_rcnn/faster_rcnn_inception_v2_pets.config
 ```
 If everything has been set up correctly, TensorFlow will initialize the training. The initialization can take up to 30 seconds before the actual training begins. When training begins, it will look like this:
 
@@ -247,3 +247,12 @@ $ tensorboard --logdir=eval_faster_rcnn/
 
 
 ### 5. [Deploying it on Raspberry Pi](https://github.com/EdjeElectronics/TensorFlow-Object-Detection-on-the-Raspberry-Pi)
+    Edje Electronics tutorial is a very good reference for the same.
+
+    
+## Results on different models :
+
+<p align="center">
+  <img src="doc/compare.png">
+</p>
+
