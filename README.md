@@ -6,12 +6,11 @@ This repository is a tutorial for how to use TensorFlow's Object Detection API t
 
 This readme describes every step required to train your own custom classifying tiger detectors: 
 1. Data Preprocessing
-2. Setting up the working environment (Object Detection directory structure (Setting Python Pathsion Creating tf records))
-3. Configuring training
-6. Training
-7. Exporting the inference graph
-8. Evaluating the model
-9. Deploying it on Raspberry Pi
+2. Setting up the working environment
+3. Creating tfrecords and Configuring training
+4. Exporting the inference graph
+5. Evaluating the model
+6. Deploying it on Raspberry Pi
 
 [Link to our project wrap up video.](https://www.youtube.com/watch?v=6YP9lnc_HiA&feature=youtu.be)
 
@@ -54,8 +53,8 @@ The TensorFlow Object Detection API requires using the specific directory struct
 
 This portion of the tutorial goes over the full set up required. It is fairly meticulous, but follow the instructions closely, because improper setup can cause unwieldy errors down the road.
 
-#### 2a. Create tmux session and link it via tensorflow docker image.
-As we did it on remote server via SSH, this becomes necessary, alternately you can make virtual environment on your local system.
+#### 2a. Create tmux session and link tensorflow docker image.
+As we did it on remote server via SSH, this becomes necessary, alternately you can create virtual environment on your local system.
 For creation of new session use the following command.
 ```
 $ tmux new -s session_name
@@ -109,8 +108,8 @@ tensorflow1
 |   |-- research
 |		|-- object_detection
 |			|-- images
-|				|-- train
-|				|-- val
+|			|	|-- train
+|			|	|-- val
 |			|-- faster_rcnn_inception_v2_coco_2018_01_28
 |						
 ```
@@ -118,50 +117,29 @@ tensorflow1
 #### 2d. Configure PYTHONPATH environment variable and install the dependencies
 
 ```
-$ 
+$ export PYTHONPATH=/home/dgxuser104/Balmukund/tensorflow1/models:/home/dgxuser104/Balmukund/tensorflow1/models/research:/home/dgxuser104/Balmukund/tensorflow1/models/research/slim:/home/dgxuser104/Balmukund/tensorflow1/models/research/object_detection
+$ export PATH=$PATH:$PYTHONPATH
 $ pip install tensorflow-gpu==1.8
 $ pip install pillow lxml Cython matplotlib pandas opencv-python
 ```
 (Note: The ‘pandas’ and ‘opencv-python’ packages are not needed by TensorFlow, but they are used in the Python scripts to generate TFRecords and to work with images, videos, and webcam feeds.)
 
-#### 2e. Configure PYTHONPATH environment variable
-A PYTHONPATH variable must be created that points to the \models, \models\research, and \models\research\slim directories. Do this by issuing the following commands (from any directory):
-```
-(tensorflow1) C:\> set PYTHONPATH=C:\tensorflow1\models;C:\tensorflow1\models\research;C:\tensorflow1\models\research\slim
-```
-(Note: Every time the "tensorflow1" virtual environment is exited, the PYTHONPATH variable is reset and needs to be set up again.)
+#### 2e. Compile Protobufs and run setup.py
+Next, compile the Protobuf files, which are used by TensorFlow to configure model and training parameters. Unfortunately, the short protoc compilation command posted on TensorFlow’s Object Detection API [installation page](https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/installation.md) does not work everytime. Every  .proto file in the /object_detection/protos directory must be called out individually by the command.
 
-#### 2f. Compile Protobufs and run setup.py
-Next, compile the Protobuf files, which are used by TensorFlow to configure model and training parameters. Unfortunately, the short protoc compilation command posted on TensorFlow’s Object Detection API [installation page](https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/installation.md) does not work on Windows. Every  .proto file in the \object_detection\protos directory must be called out individually by the command.
-
-In the Anaconda Command Prompt, change directories to the \models\research directory and copy and paste the following command into the command line and press Enter:
+In the tmux session terminal, change directories to the tensorflow1//models/research directory and copy and paste the following command into the command line and press Enter:
 ```
-protoc --python_out=. .\object_detection\protos\anchor_generator.proto .\object_detection\protos\argmax_matcher.proto .\object_detection\protos\bipartite_matcher.proto .\object_detection\protos\box_coder.proto .\object_detection\protos\box_predictor.proto .\object_detection\protos\eval.proto .\object_detection\protos\faster_rcnn.proto .\object_detection\protos\faster_rcnn_box_coder.proto .\object_detection\protos\grid_anchor_generator.proto .\object_detection\protos\hyperparams.proto .\object_detection\protos\image_resizer.proto .\object_detection\protos\input_reader.proto .\object_detection\protos\losses.proto .\object_detection\protos\matcher.proto .\object_detection\protos\mean_stddev_box_coder.proto .\object_detection\protos\model.proto .\object_detection\protos\optimizer.proto .\object_detection\protos\pipeline.proto .\object_detection\protos\post_processing.proto .\object_detection\protos\preprocessor.proto .\object_detection\protos\region_similarity_calculator.proto .\object_detection\protos\square_box_coder.proto .\object_detection\protos\ssd.proto .\object_detection\protos\ssd_anchor_generator.proto .\object_detection\protos\string_int_label_map.proto .\object_detection\protos\train.proto .\object_detection\protos\keypoint_box_coder.proto .\object_detection\protos\multiscale_anchor_generator.proto .\object_detection\protos\graph_rewriter.proto
+protoc --python_out=object_detection object_detection/protos/anchor_generator.proto object_detection/protos/argmax_matcher.proto object_detection/protos object_detection/protos/anchor_generator.proto object_detection/protos/input_reader.proto object_detection/protos/losses.proto object_detection/protos/matcher.proto object_detection/protos/argmax_matcher.proto object_detection/protos/bipartite_matcher.proto object_detection/protos/box_coder.proto object_detection/protos/box_predictor.proto object_detection/protos/eval.proto object_detection/protos/faster_rcnn.proto object_detection/protos/faster_rcnn_box_coder.proto object_detection/protos/grid_anchor_generator.proto object_detection/protos/hyperparams.proto object_detection/protos/image_resizer.proto object_detection/protos/input_reader.proto object_detection/protos/losses.proto object_detection/protos/matcher.proto object_detection/protos/mean_stddev_box_coder.proto object_detection/protos/model.proto object_detection/protos/optimizer.proto object_detection/protos/pipeline.proto object_detection/protos/post_processing.proto object_detection/protos/preprocessor.proto object_detection/protos/region_similarity_calculator.proto object_detection/protos/square_box_coder.proto object_detection/protos/ssd.proto object_detection/protos/ssd_anchor_generator.proto object_detection/protos/string_int_label_map.proto object_detection/protos/train.proto object_detection/protos/keypoint_box_coder.proto object_detection/protos/multiscale_anchor_generator.proto object_detection/protos/graph_rewriter.proto object_detection/protos/calibration.proto object_detection/protos/flexible_grid_anchor_generator.proto
 ```
-This creates a name_pb2.py file from every name.proto file in the \object_detection\protos folder.
+This creates a name_pb2.py file from every name.proto file in the /object_detection/protos folder.
 
-**(Note: TensorFlow occassionally adds new .proto files to the \protos folder. If you get an error saying ImportError: cannot import name 'something_something_pb2' , you may need to update the protoc command to include the new .proto files.)**
+**(Note: TensorFlow occassionally adds new .proto files to the /protos folder. If you get an error saying ImportError: cannot import name 'something_something_pb2' , you may need to update the protoc command to include the new .proto files.)**
 
-Finally, run the following commands from the C:\tensorflow1\models\research directory:
+Finally, run the following commands from the /tensorflow1/models/research directory:
 ```
-(tensorflow1) C:\tensorflow1\models\research> python setup.py build
-(tensorflow1) C:\tensorflow1\models\research> python setup.py install
+$ python setup.py build
+$ python setup.py install
 ```
-
-#### 2g. Test TensorFlow setup to verify it works
-The TensorFlow Object Detection API is now all set up to use pre-trained models for object detection, or to train a new one. You can test it out and verify your installation is working by launching the object_detection_tutorial.ipynb script with Jupyter. From the \object_detection directory, issue this command:
-```
-(tensorflow1) C:\tensorflow1\models\research\object_detection> jupyter notebook object_detection_tutorial.ipynb
-```
-This opens the script in your default web browser and allows you to step through the code one section at a time. You can step through each section by clicking the “Run” button in the upper toolbar. The section is done running when the “In [ * ]” text next to the section populates with a number (e.g. “In [1]”). 
-
-(Note: part of the script downloads the ssd_mobilenet_v1 model from GitHub, which is about 74MB. This means it will take some time to complete the section, so be patient.)
-
-Once you have stepped all the way through the script, you should see two labeled images at the bottom section the page. If you see this, then everything is working properly! If not, the bottom section will report any errors encountered. See the [Appendix](https://github.com/EdjeElectronics/TensorFlow-Object-Detection-API-Tutorial-Train-Multiple-Objects-Windows-10#appendix-common-errors) for a list of errors I encountered while setting this up.
-
-<p align="center">
-  <img src="doc/jupyter_notebook_dogs.jpg">
-</p>
 
 ### 3. Gather and Label Pictures
 Now that the TensorFlow Object Detection API is all set up and ready to go, we need to provide the images it will use to train a new detection classifier.
