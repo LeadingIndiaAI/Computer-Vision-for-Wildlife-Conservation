@@ -7,7 +7,7 @@ This repository is a tutorial for how to use TensorFlow's Object Detection API t
 This readme describes every step required to train your own custom classifying tiger detectors: 
 1. Data Preprocessing
 2. Setting up the working environment
-3. Creating tfrecords and Configuring training
+3. Generate training data and Configuring training
 4. Exporting the inference graph
 5. Evaluating the model
 6. Deploying it on Raspberry Pi
@@ -141,169 +141,70 @@ $ python setup.py build
 $ python setup.py install
 ```
 
-### 3. Gather and Label Pictures
-Now that the TensorFlow Object Detection API is all set up and ready to go, we need to provide the images it will use to train a new detection classifier.
+### 3. Generate Training Data
 
-#### 3a. Gather Pictures
-TensorFlow needs hundreds of images of an object to train a good detection classifier. To train a robust classifier, the training images should have random objects in the image along with the desired objects, and should have a variety of backgrounds and lighting conditions. There should be some images where the desired object is partially obscured, overlapped with something else, or only halfway in the picture. 
+#### 3a. Generate CSV and tfrecords
 
-For my Pinochle Card Detection classifier, I have six different objects I want to detect (the card ranks nine, ten, jack, queen, king, and ace – I am not trying to detect suit, just rank). I used my iPhone to take about 40 pictures of each card on its own, with various other non-desired objects in the pictures. Then, I took about another 100 pictures with multiple cards in the picture. I know I want to be able to detect the cards when they’re overlapping, so I made sure to have the cards be overlapped in many images.
-
-<p align="center">
-  <img src="doc/collage.jpg">
-</p>
-
-You can use your phone to take pictures of the objects or download images of the objects from Google Image Search. I recommend having at least 200 pictures overall. I used 311 pictures to train my card detector.
-
-Make sure the images aren’t too large. They should be less than 200KB each, and their resolution shouldn’t be more than 720x1280. The larger the images are, the longer it will take to train the classifier. You can use the resizer.py script in this repository to reduce the size of the images.
-
-After you have all the pictures you need, move 20% of them to the \object_detection\images\test directory, and 80% of them to the \object_detection\images\train directory. Make sure there are a variety of pictures in both the \test and \train directories.
-
-#### 3b. Label Pictures
-Here comes the fun part! With all the pictures gathered, it’s time to label the desired objects in every picture. LabelImg is a great tool for labeling images, and its GitHub page has very clear instructions on how to install and use it.
-
-[LabelImg GitHub link](https://github.com/tzutalin/labelImg)
-
-[LabelImg download link](https://www.dropbox.com/s/tq7zfrcwl44vxan/windows_v1.6.0.zip?dl=1)
-
-Download and install LabelImg, point it to your \images\train directory, and then draw a box around each object in each image. Repeat the process for all the images in the \images\test directory. This will take a while! 
-
-<p align="center">
-  <img src="doc/labels.jpg">
-</p>
-
-LabelImg saves a .xml file containing the label data for each image. These .xml files will be used to generate TFRecords, which are one of the inputs to the TensorFlow trainer. Once you have labeled and saved each image, there will be one .xml file for each image in the \test and \train directories.
-
-Also, you can check if the size of each bounding box is correct by running sizeChecker.py
-
-```
-(tensorflow1) C:\tensorflow1\models\research\object_detection> python sizeChecker.py --move
-```
-
-### 4. Generate Training Data
 With the images labeled, it’s time to generate the TFRecords that serve as input data to the TensorFlow training model. This tutorial uses the xml_to_csv.py and generate_tfrecord.py scripts from [Dat Tran’s Raccoon Detector dataset](https://github.com/datitran/raccoon_dataset), with some slight modifications to work with our directory structure.
 
-First, the image .xml data will be used to create .csv files containing all the data for the train and test images. From the \object_detection folder, issue the following command in the Anaconda command prompt:
+First, the image .xml data will be used to create .csv files containing all the data for the train and test images. From the /object_detection folder, issue the following command in the tmux session:
 ```
-(tensorflow1) C:\tensorflow1\models\research\object_detection> python xml_to_csv.py
+$ python xml_to_csv.py
 ```
-This creates a train_labels.csv and test_labels.csv file in the \object_detection\images folder. 
+This creates a train_labels.csv and val_labels.csv file in the /object_detection/images folder. And then You've to manually edit the first tag of the CSVs to filename from Order, using inbuilt text editor in terminal.
+```
+$ apt install nano
+$ nano train_labels.csv
+-->change the tag from Order to filename and use Ctrl+X, followed by Y to save and exit.
+$ nano val_labels.csv
+-->change the tag from Order to filename and use Ctrl+X, followed by Y to save and exit.
+```
+Next, open the generate_tfrecord.py file in a nano text editor. Replace the label map starting at line 31 with your own label map, where each object is assigned an ID number. This same number assignment will be used when configuring the labelmap.pbtxt file in Step 5b. 
 
-Next, open the generate_tfrecord.py file in a text editor. Replace the label map starting at line 31 with your own label map, where each object is assigned an ID number. This same number assignment will be used when configuring the labelmap.pbtxt file in Step 5b. 
-
-For example, say you are training a classifier to detect basketballs, shirts, and shoes. You will replace the following code in generate_tfrecord.py:
+For example, say you are training a classifier to detect tigers. You will replace the following code in generate_tfrecord.py:
 ```
-# TO-DO replace this with label map
 def class_text_to_int(row_label):
-    if row_label == 'nine':
+    if row_label == 'Tiger':
         return 1
-    elif row_label == 'ten':
-        return 2
-    elif row_label == 'jack':
-        return 3
-    elif row_label == 'queen':
-        return 4
-    elif row_label == 'king':
-        return 5
-    elif row_label == 'ace':
-        return 6
-    else:
+	else:
         return None
 ```
-With this:
+Then, generate the TFRecord files by issuing these commands from the /object_detection folder:
 ```
-# TO-DO replace this with label map
-def class_text_to_int(row_label):
-    if row_label == 'basketball':
-        return 1
-    elif row_label == 'shirt':
-        return 2
-    elif row_label == 'shoe':
-        return 3
-    else:
-        return None
+python generate_tfrecord.py --csv_input=images/train_labels.csv --image_dir=images/train --output_path=images/train.record
+python generate_tfrecord.py --csv_input=images/test_labels.csv --image_dir=images/test --output_path=images/val.record
 ```
-Then, generate the TFRecord files by issuing these commands from the \object_detection folder:
-```
-python generate_tfrecord.py --csv_input=images\train_labels.csv --image_dir=images\train --output_path=train.record
-python generate_tfrecord.py --csv_input=images\test_labels.csv --image_dir=images\test --output_path=test.record
-```
-These generate a train.record and a test.record file in \object_detection. These will be used to train the new object detection classifier.
+These generate a train.record and a test.record file in /object_detection. These will be used to train the new object detection classifier.
 
-### 5. Create Label Map and Configure Training
-The last thing to do before training is to create a label map and edit the training configuration file.
-
-#### 5a. Label map
-The label map tells the trainer what each object is by defining a mapping of class names to class ID numbers. Use a text editor to create a new file and save it as labelmap.pbtxt in the C:\tensorflow1\models\research\object_detection\training folder. (Make sure the file type is .pbtxt, not .txt !) In the text editor, copy or type in the label map in the format below (the example below is the label map for my Pinochle Deck Card Detector):
+#### 3b. Create Label Map 
+The last thing to do before training is to create a label map and edit the training configuration file. The label map tells the trainer what each object is by defining a mapping of class names to class ID numbers. Use a text editor to create a new file and save it as labelmap.pbtxt in the /tensorflow1/models/research/object_detection/train folder. (Make sure the file type is .pbtxt, not .txt !) In the text editor, copy or type in the label map in the format below:
 ```
 item {
   id: 1
-  name: 'nine'
-}
-
-item {
-  id: 2
-  name: 'ten'
-}
-
-item {
-  id: 3
-  name: 'jack'
-}
-
-item {
-  id: 4
-  name: 'queen'
-}
-
-item {
-  id: 5
-  name: 'king'
-}
-
-item {
-  id: 6
-  name: 'ace'
-}
-```
-The label map ID numbers should be the same as what is defined in the generate_tfrecord.py file. For the basketball, shirt, and shoe detector example mentioned in Step 4, the labelmap.pbtxt file will look like:
-```
-item {
-  id: 1
-  name: 'basketball'
-}
-
-item {
-  id: 2
-  name: 'shirt'
-}
-
-item {
-  id: 3
-  name: 'shoe'
+  name: 'Tiger'
 }
 ```
 
-#### 5b. Configure training
+#### 3c. Configure training
 Finally, the object detection training pipeline must be configured. It defines which model and what parameters will be used for training. This is the last step before running training!
 
-Navigate to C:\tensorflow1\models\research\object_detection\samples\configs and copy the faster_rcnn_inception_v2_pets.config file into the \object_detection\training directory. Then, open the file with a text editor. There are several changes to make to the .config file, mainly changing the number of classes and examples, and adding the file paths to the training data.
+Navigate to /tensorflow1/models/research/object_detection/samples/configs and copy the faster_rcnn_inception_v2_pets.config file into the /object_detection/training directory. Then, open the file with a text editor. There are several changes to make to the .config file, mainly changing the number of classes and examples, and adding the file paths to the training data.
 
 Make the following changes to the faster_rcnn_inception_v2_pets.config file. Note: The paths must be entered with single forward slashes (NOT backslashes), or TensorFlow will give a file path error when trying to train the model! Also, the paths must be in double quotation marks ( " ), not single quotation marks ( ' ).
 
-- Line 9. Change num_classes to the number of different objects you want the classifier to detect. For the above basketball, shirt, and shoe detector, it would be num_classes : 3 .
+- Line 9. Change num_classes to the number of different objects you want the classifier to detect. For the above Tiger class, it would be num_classes : 1 .
 - Line 110. Change fine_tune_checkpoint to:
-  - fine_tune_checkpoint : "C:/tensorflow1/models/research/object_detection/faster_rcnn_inception_v2_coco_2018_01_28/model.ckpt"
+  - fine_tune_checkpoint : "tensorflow1/models/research/object_detection/faster_rcnn_inception_v2_coco_2018_01_28/model.ckpt"
 
 - Lines 126 and 128. In the train_input_reader section, change input_path and label_map_path to:
-  - input_path : "C:/tensorflow1/models/research/object_detection/train.record"
-  - label_map_path: "C:/tensorflow1/models/research/object_detection/training/labelmap.pbtxt"
+  - input_path : "tensorflow1/models/research/object_detection/train.record"
+  - label_map_path: "tensorflow1/models/research/object_detection/train/labelmap.pbtxt"
 
-- Line 132. Change num_examples to the number of images you have in the \images\test directory.
+- Line 132. Change num_examples to the number of images you have in the /images/test directory.
 
 - Lines 140 and 142. In the eval_input_reader section, change input_path and label_map_path to:
-  - input_path : "C:/tensorflow1/models/research/object_detection/test.record"
-  - label_map_path: "C:/tensorflow1/models/research/object_detection/training/labelmap.pbtxt"
+  - input_path : "tensorflow1/models/research/object_detection/val.record"
+  - label_map_path: "tensorflow1/models/research/object_detection/val/labelmap.pbtxt"
 
 Save the file after the changes have been made. That’s it! The training job is all configured and ready to go!
 
