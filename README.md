@@ -36,7 +36,10 @@ TensorFlow-GPU allows your PC to use the video card to provide extra processing 
 #### 1a. Download the ATRW dataset by CVWC
 Download the [tiger detection dataset](https://cvwc2019.github.io/challenge.html).
 
-#### 1b. Split the dataset into train and test
+#### 1b. Edit the discrepancy of filename tags in xml files.
+If you open any xml file, you would notice a discrepancy in the name of xml file and in the tag of filename in the xml file. We correct this by creating a new tag named Order and re-generating xml files using windows power shell. [This custom script was made for this.](https://github.com/growupboron/Tiger-Detection-Using-ATRW-Dataset/blob/master/atrw_xml_correction.ps1). Issue the script in your local Windows OS's powershell.
+
+#### 1c. Split the dataset into train and test
 Copy the train.txt and val.txt files from atrw_anno_detection_train/ImageSets/Main/ directory into the atrw_anno_detection_train/Annotations/ directory
 In the terminal, issue the following commands to split the dataset into train and validation sets, you should be in the atrw_anno_detection_train/Annotations directory, while issuing these commands.
 ```
