@@ -1,0 +1,42 @@
+Steps to infer model on test dataset
+
+1)Edit the discrepancy of filename tags in xml files.
+If you open any xml file, you would notice a discrepancy in the name of xml file and in the tag of filename in the xml file, this generates a bug that won't let us generate tfrecords afterwards. We correct this by creating a new tag named Order and re-generating xml files using windows power shell with the correct name with new tag 'Order'. This powershell custom script was made for this,(https://github.com/growupboron/Tiger-Detection-Using-ATRW-Dataset/blob/master/atrw_xml_correction.ps1) Run the script in your local Windows OS's powershell on the xml files.
+
+2)Generate CSV
+$ python xml_to_csv.py
+This creates a train_labels.csv file in the /object_detection/images folder. And then You've to manually edit the first tag of the CSVs to filename from Order, using inbuilt text editor in terminal.
+$ nano test_labels.csv
+-->change the tag from Order to filename and use Ctrl+X, followed by Y to save and exit.
+
+3)Generate tfrecords
+$ python generate_tfrecord.py --csv_input=images/test.csv --image_dir=images/test --output_path=images/test.record 
+
+4)Configure training
+Finally, the object detection training pipeline must be configured. It defines which model and what parameters will be used for training. This is the last step before running training!
+
+Navigate to /tensorflow1/models/research/object_detection/samples/configs and copy the faster_rcnn_inception_v2_pets.config file into the /object_detection/training_faster_rcnn directory. Then, open the file with a text editor. There are several changes to make to the .config file, mainly changing the number of classes and examples, and adding the file paths to the training data.
+
+Make the following changes to the faster_rcnn_inception_v2_pets.config file. Note: The paths must be entered with single forward slashes (NOT backslashes), or TensorFlow will give a file path error when trying to train the model! Also, the paths must be in double quotation marks ( " ), not single quotation marks ( ' ).
+
+Line 9. Change num_classes to the number of different objects you want the classifier to detect. For the above Tiger class, it would be num_classes : 1 .
+
+Line 110. Change fine_tune_checkpoint to:
+
+fine_tune_checkpoint : "tensorflow1/models/research/object_detection/faster_rcnn_inception_v2_coco_2018_01_28/model.ckpt"
+Lines 126 and 128. In the train_input_reader section, change input_path and label_map_path to:
+
+input_path : "tensorflow1/models/research/object_detection/images/train.record"
+label_map_path: "tensorflow1/models/research/object_detection/training_faster_rcnn/labelmap.pbtxt"
+Line 132. Change num_examples to the number of images you have in the /images/test directory.
+
+Lines 140 and 142. In the eval_input_reader section, change input_path and label_map_path to:
+
+input_path : "tensorflow1/models/research/object_detection/images/test.record"
+label_map_path: "tensorflow1/models/research/object_detection/training_faster_rcnn/labelmap.pbtxt"
+Save the file after the changes have been made. That’s it! The training job is all configured and ready to go!
+
+5)Evaluating the model
+$ python eval.py --logtostderr --pipeline_config_path=training_faster_rcnn/faster_rcnn_inception_v2_pets.config --checkpoint_dir=training_faster_rcnn/ --eval_dir=eval_faster_rcnn/
+
+
